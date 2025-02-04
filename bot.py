@@ -13,7 +13,7 @@ CHANNEL_TRADE_ID = 1335676311838134355 # Ersetze mit deinem Trading-Channel
 
 # Sessions mit Handelszeiten
 SESSIONS = [
-    {"name": "Trading Session 1", "time": "15:18", "timezone": "Europe/Berlin"},
+    {"name": "Trading Session 1", "time": "15:55", "timezone": "Europe/Berlin"},
     {"name": "Trading Session 2", "time": "19:35", "timezone": "Europe/Berlin"},
 ]
 
