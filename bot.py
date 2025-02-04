@@ -18,7 +18,7 @@ RSS_FEEDS = [
 
 CHANNEL_FOREX_ID = 1336353220460806174  # Forex-News-Kanal 
 CHANNEL_TRADE_ID = 1335676311838134355  # Trading-Kanal 
-CHANNEL_RSS_ID = 1335674970013040794 # Neuer Kanal für RSS-Feeds 
+CHANNEL_RSS_ID = 1335674970013040794  # Neuer Kanal für RSS-Feeds 
 
 # Handelszeiten
 SESSIONS = [
@@ -83,7 +83,6 @@ async def post_news():
                     sent_news.pop()  # Älteste Nachricht entfernen
 
         # RSS-News in RSS-Kanal senden
-        rss_news = await fetch_rss_news()
         for item in rss_news:
             if item not in sent_news:
                 await rss_channel.send(item)
@@ -124,7 +123,6 @@ async def on_ready():
     client.loop.create_task(send_trade_reminders())  
 
 client.run(TOKEN)
-
 
 
 
