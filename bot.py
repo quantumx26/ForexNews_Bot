@@ -1,18 +1,21 @@
 import os
 import discord
 import aiohttp
-from bs4 import BeautifulSoup
 import asyncio
+import feedparser
+from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 import pytz
 
 TOKEN = os.getenv("DISCORD_BOT_TOKEN")  # Discord Bot Token
 SOURCES = [
     "https://t.me/s/ForexFactoryCalendar",  # Telegram-Kanal
-    "https://bitcoin-live.de"  # Normale Webseite
 ]
-CHANNEL_FOREX_ID = 1335674970013040794  # Ersetze mit deinem Forex-Channel
-CHANNEL_TRADE_ID = 1335676311838134355  # Ersetze mit deinem Trading-Channel
+RSS_FEEDS = [
+    "https://cointelegraph.com/rss"  # RSS-Feed für Krypto-News
+]
+CHANNEL_FOREX_ID = 1335674970013040794  # Dein Forex-News-Kanal
+CHANNEL_TRADE_ID = 1335676311838134355  # Dein Trading-Kanal
 
 # Handelszeiten
 SESSIONS = [
@@ -25,9 +28,9 @@ intents.message_content = True
 client = discord.Client(intents=intents)
 
 # Zum Speichern gesendeter Nachrichten
-sent_news = []
+sent_news = set()
 
-# Funktion zum Abrufen von Telegram-Nachrichten
+# Telegram-Nachrichten abrufen
 async def fetch_telegram_news(url):
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
@@ -36,14 +39,25 @@ async def fetch_telegram_news(url):
             messages = soup.find_all('div', class_='tgme_widget_message_text')
             return [msg.text.strip() for msg in messages[-5:]]  # Letzte 5 Nachrichten
 
-# Funktion zum Abrufen von normalen Webseiten-News
+# Webseiten-News abrufen
 async def fetch_website_news(url):
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             html = await response.text()
             soup = BeautifulSoup(html, 'html.parser')
-            articles = soup.find_all('h2')  # Beispiel: Überschriften der Artikel
+            articles = soup.find_all('h2')  # Beispiel: Überschriften
             return [article.text.strip() for article in articles[:5]]  # Letzte 5 Artikel
+
+# RSS-Feed abrufen
+async def fetch_rss_news():
+    news_items = []
+    for url in RSS_FEEDS:
+        feed = feedparser.parse(url)
+        for entry in feed.entries[:5]:  # Nur die neuesten 5 Artikel holen
+            if entry.link not in sent_news:
+                sent_news.add(entry.link)
+                news_items.append(f"📰 **{entry.title}**\n{entry.link}")
+    return news_items
 
 # News abrufen & posten
 async def post_news():
@@ -51,18 +65,28 @@ async def post_news():
     forex_channel = client.get_channel(CHANNEL_FOREX_ID)
 
     while not client.is_closed():
+        all_news = []
+
+        # Telegram & Webseiten abrufen
         for url in SOURCES:
             if "t.me/s/" in url:  # Telegram-URL erkennen
                 news = await fetch_telegram_news(url)
             else:  # Normale Webseite
                 news = await fetch_website_news(url)
+            all_news.extend(news)
 
-            for item in news:
-                if item not in sent_news:
-                    await forex_channel.send(item)
-                    sent_news.append(item)
-                    if len(sent_news) > 50:
-                        sent_news.pop(0)  # Älteste Nachricht entfernen
+        # RSS-News abrufen
+        rss_news = await fetch_rss_news()
+        all_news.extend(rss_news)
+
+        # Senden, wenn es neue Nachrichten gibt
+        for item in all_news:
+            if item not in sent_news:
+                await forex_channel.send(item)
+                sent_news.add(item)
+                if len(sent_news) > 50:
+                    sent_news.pop()  # Älteste Nachricht entfernen
+
         await asyncio.sleep(900)  # Alle 15 Minuten neue News abrufen
 
 # Handels Session Erinnerungen
@@ -80,11 +104,11 @@ async def send_trade_reminders():
 
             reminder_time = (datetime.combine(datetime.today(), session_time) - timedelta(minutes=10)).time()
             if session_now.hour == reminder_time.hour and session_now.minute == reminder_time.minute:
-                await trade_channel.send(f"⏰ **In 10 Minuten beginnt die {session['name']}!** Bereitet euch vor! 📊🚀")
+                await trade_channel.send(f"⏰ **In 10 Minuten beginnt die {session['name']}!** 📊🚀")
                 await asyncio.sleep(60)
 
             if session_now.hour == session_time.hour and session_now.minute == session_time.minute:
-                await trade_channel.send(f"⏰ **{session['name']} beginnt jetzt!** Viel Erfolg beim Trading! 📊💰")
+                await trade_channel.send(f"⏰ **{session['name']} beginnt jetzt!** 📊💰")
                 await asyncio.sleep(60)
 
         await asyncio.sleep(30)  # Alle 30 Sekunden prüfen
@@ -96,7 +120,6 @@ async def on_ready():
     client.loop.create_task(send_trade_reminders())  
 
 client.run(TOKEN)
-
 
 
 
