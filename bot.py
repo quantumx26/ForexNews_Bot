@@ -22,6 +22,9 @@ FOREX_URL = "https://www.forexfactory.com/"
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 
+# Liste zur Speicherung der letzten gesendeten Nachrichten-IDs (vermeidet doppelte Posts)
+sent_news = []
+
 # Forex News Abfrage
 async def fetch_forexfactory_news():
     async with aiohttp.ClientSession() as session:
@@ -39,8 +42,13 @@ async def send_forex_news():
     while not client.is_closed():
         news = await fetch_forexfactory_news()
         for item in news:
-            await forex_channel.send(item)
-        await asyncio.sleep(3600)  # Warte 1 Stunde, bevor du die nächsten Nachrichten übermittelst
+            # Verhindert doppelte Nachrichten
+            if item not in sent_news:
+                await forex_channel.send(item)
+                sent_news.append(item)  # Füge die Nachricht zur Liste der gesendeten Nachrichten hinzu
+                if len(sent_news) > 50:  # Begrenze die Anzahl gespeicherter Nachrichten
+                    sent_news.pop(0)  # Entferne die älteste Nachricht, wenn die Liste zu lang wird
+        await asyncio.sleep(900)  # Warte 1 Stunde, bevor du die nächsten Nachrichten übermittelst
 
 # Handels Session Erinnerungen
 async def send_trade_reminders():
@@ -76,4 +84,5 @@ async def on_ready():
     client.loop.create_task(send_trade_reminders())  # Handels-Erinnerungen senden
 
 client.run(TOKEN)
+
 
