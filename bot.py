@@ -32,6 +32,7 @@ intents.message_content = True
 client = discord.Client(intents=intents)
 
 sent_news = set()  # Verhindert doppelte Nachrichten
+sent_telegram_news = set()  # Verhindert doppelte Telegram-Nachrichten
 
 # Telegram-Nachrichten abrufen
 async def fetch_telegram_news(url):
@@ -68,9 +69,11 @@ async def post_news():
         for url in SOURCES:
             if "t.me/s/" in url:  # Telegram-URL erkennen
                 news = await fetch_telegram_news(url)
-                # Telegram-Nachrichten nur in den Forex-Kanal posten
+                # Telegram-Nachrichten nur in den Forex-Kanal posten, wenn sie nicht schon gesendet wurden
                 for item in news:
-                    await forex_channel.send(item)
+                    if item not in sent_telegram_news:  # Prüfen, ob Nachricht bereits gesendet wurde
+                        await forex_channel.send(item)
+                        sent_telegram_news.add(item)
 
         # RSS-News abrufen und in den RSS-Kanal senden
         rss_news = await fetch_rss_news()
@@ -107,11 +110,25 @@ async def send_trade_reminders():
 
         await asyncio.sleep(30)  # Alle 30 Sekunden prüfen
 
+# Jeden Tag Mitternacht die Telegram-Nachrichten zurücksetzen
+async def reset_telegram_news():
+    await client.wait_until_ready()
+
+    while not client.is_closed():
+        now = datetime.now(pytz.timezone("Europe/Berlin"))
+        # Wenn es Mitternacht ist
+        if now.hour == 0 and now.minute == 0:
+            sent_telegram_news.clear()  # Set zurücksetzen
+            print("✅ Telegram-Nachrichtenspeicher zurückgesetzt!")
+            await asyncio.sleep(60)  # Warten, um sicherzustellen, dass der Reset nur einmal passiert
+        await asyncio.sleep(30)  # Alle 30 Sekunden prüfen
+
 @client.event
 async def on_ready():
     print(f"✅ Bot {client.user} ist gestartet!")
     client.loop.create_task(post_news())  
     client.loop.create_task(send_trade_reminders())  
+    client.loop.create_task(reset_telegram_news())  # Reset-Task starten
 
 client.run(TOKEN)
 
