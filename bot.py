@@ -9,7 +9,7 @@ import pytz
 TOKEN = os.getenv("DISCORD_BOT_TOKEN")  # Discord Bot Token
 SOURCES = [
     "https://t.me/s/ForexFactoryCalendar",  # Telegram-Kanal
-    "https://bitcoin-2go.de/news/"  # Normale Webseite
+    "https://bitcoin-live.de"  # Normale Webseite
 ]
 CHANNEL_FOREX_ID = 1335674970013040794  # Ersetze mit deinem Forex-Channel
 CHANNEL_TRADE_ID = 1335676311838134355  # Ersetze mit deinem Trading-Channel
