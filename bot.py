@@ -84,7 +84,7 @@ async def post_news():
                 if len(sent_news) > 50:
                     sent_news.pop()  # Älteste Nachricht entfernen
 
-        await asyncio.sleep(900)  # Alle 15 Minuten neue News abrufen
+        await asyncio.sleep(120)  # Alle 15 Minuten neue News abrufen
 
 # Handels Session Erinnerungen
 async def send_trade_reminders():
