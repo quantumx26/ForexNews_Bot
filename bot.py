@@ -16,9 +16,9 @@ RSS_FEEDS = [
     "https://cointelegraph.com/rss"  # RSS-Feed für Krypto-News
 ]
 
-CHANNEL_FOREX_ID = 1336353220460806174  # Forex-News-Kanal 
-CHANNEL_TRADE_ID = 1335676311838134355  # Trading-Kanal 
-CHANNEL_RSS_ID = 1335674970013040794  # Neuer Kanal für RSS-Feeds 
+CHANNEL_FOREX_ID = 1336353220460806174  # Forex-News-Kanal
+CHANNEL_TRADE_ID = 1335676311838134355  # Trading-Kanal
+CHANNEL_RSS_ID = 1335674970013040794  # RSS-News-Kanal
 
 # Handelszeiten
 SESSIONS = [
@@ -55,8 +55,9 @@ async def fetch_rss_news():
 # News abrufen & in die entsprechenden Kanäle posten
 async def post_news():
     await client.wait_until_ready()
-    
-    forex_channel = client.get_channel(CHANNEL_FOREX_ID)  # Kanal für Forex-Nachrichten
+
+    forex_channel = client.get_channel(CHANNEL_FOREX_ID)  # Kanal für Forex-Nachrichten (Telegram)
+    trade_channel = client.get_channel(CHANNEL_TRADE_ID)  # Kanal für Trading-Benachrichtigungen
     rss_channel = client.get_channel(CHANNEL_RSS_ID)  # Kanal für RSS-News
 
     while not client.is_closed():
@@ -66,23 +67,12 @@ async def post_news():
         for url in SOURCES:
             if "t.me/s/" in url:  # Telegram-URL erkennen
                 news = await fetch_telegram_news(url)
-            else:  # Normale Webseite
-                news = await fetch_website_news(url)
-            all_news.extend(news)
+                # Telegram-Nachrichten nur in den Forex-Kanal posten
+                for item in news:
+                    await forex_channel.send(item)
 
-        # RSS-News abrufen
+        # RSS-News abrufen und in den RSS-Kanal senden
         rss_news = await fetch_rss_news()
-        all_news.extend(rss_news)
-
-        # Forex-News in Forex-Kanal senden
-        for item in all_news:
-            if item not in sent_news:
-                await forex_channel.send(item)
-                sent_news.add(item)
-                if len(sent_news) > 50:
-                    sent_news.pop()  # Älteste Nachricht entfernen
-
-        # RSS-News in RSS-Kanal senden
         for item in rss_news:
             if item not in sent_news:
                 await rss_channel.send(item)
@@ -123,6 +113,5 @@ async def on_ready():
     client.loop.create_task(send_trade_reminders())  
 
 client.run(TOKEN)
-
 
 
