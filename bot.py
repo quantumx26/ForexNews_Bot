@@ -16,9 +16,9 @@ RSS_FEEDS = [
     "https://cointelegraph.com/rss"  # RSS-Feed für Krypto-News
 ]
 
-CHANNEL_FOREX_ID = 1335674970013040794  # Forex-News-Kanal
-CHANNEL_TRADE_ID = 1335676311838134355  # Trading-Kanal
-CHANNEL_RSS_ID = 1336353220460806174  # Neuer Kanal für RSS-Feeds
+CHANNEL_FOREX_ID = 1336353220460806174  # Forex-News-Kanal 
+CHANNEL_TRADE_ID = 1335676311838134355  # Trading-Kanal 
+CHANNEL_RSS_ID = 1335674970013040794 # Neuer Kanal für RSS-Feeds 
 
 # Handelszeiten
 SESSIONS = [
