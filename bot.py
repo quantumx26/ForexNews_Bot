@@ -49,7 +49,7 @@ async def send_forex_news():
                 sent_news.append(item)  # Füge die Nachricht zur Liste der gesendeten Nachrichten hinzu
                 if len(sent_news) > 50:  # Begrenze die Anzahl gespeicherter Nachrichten
                     sent_news.pop(0)  # Entferne die älteste Nachricht, wenn die Liste zu lang wird
-        await asyncio.sleep(900)  # Warte 15 Minuten, bevor du die nächsten Nachrichten übermittelst
+        await asyncio.sleep(300)  # Warte 15 Minuten, bevor du die nächsten Nachrichten übermittelst
 
 # Handels Session Erinnerungen
 async def send_trade_reminders():
