@@ -9,7 +9,7 @@ import pytz
 TOKEN = os.getenv("DISCORD_BOT_TOKEN")  # Discord Bot Token
 TELEGRAM_URL = "https://t.me/s/ForexFactoryCalendar"  # Öffentliche Telegram-Webseite
 CHANNEL_FOREX_ID = 1335674970013040794  # Ersetze mit deinem Forex-Channel
-CHANNEL_TRADE_ID = 123456789012345678  # Ersetze mit deinem Trading-Channel
+CHANNEL_TRADE_ID = 1335676311838134355 # Ersetze mit deinem Trading-Channel
 
 # Sessions mit Handelszeiten
 SESSIONS = [
