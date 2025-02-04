@@ -16,8 +16,8 @@ SESSIONS = [
     {"name": "Trading Session 2", "time": "19:35", "timezone": "Europe/Berlin"},
 ]
 
-# Forex Factory Nachrichten URL
-FOREX_URL = "https://www.forexfactory.com/"
+# URL für die Forex-Nachrichten von Telegram
+TELEGRAM_URL = "https://t.me/s/ForexFactoryCalendar"  # Öffentliche Telegram-Webseite
 
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
@@ -28,7 +28,7 @@ sent_news = []
 # Forex News Abfrage
 async def fetch_forexfactory_news():
     async with aiohttp.ClientSession() as session:
-        async with session.get(FOREX_URL) as response:
+        async with session.get(TELEGRAM_URL) as response:
             text = await response.text()
             soup = BeautifulSoup(text, 'html.parser')
             # Hier kannst du die spezifischen Nachrichten-Elemente auswählen
@@ -48,7 +48,7 @@ async def send_forex_news():
                 sent_news.append(item)  # Füge die Nachricht zur Liste der gesendeten Nachrichten hinzu
                 if len(sent_news) > 50:  # Begrenze die Anzahl gespeicherter Nachrichten
                     sent_news.pop(0)  # Entferne die älteste Nachricht, wenn die Liste zu lang wird
-        await asyncio.sleep(900)  # Warte 1 Stunde, bevor du die nächsten Nachrichten übermittelst
+        await asyncio.sleep(900)  # Warte 15 Minuten, bevor du die nächsten Nachrichten übermittelst
 
 # Handels Session Erinnerungen
 async def send_trade_reminders():
@@ -84,5 +84,6 @@ async def on_ready():
     client.loop.create_task(send_trade_reminders())  # Handels-Erinnerungen senden
 
 client.run(TOKEN)
+
 
 
