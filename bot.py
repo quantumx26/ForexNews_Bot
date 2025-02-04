@@ -8,14 +8,17 @@ from datetime import datetime, timedelta
 import pytz
 
 TOKEN = os.getenv("DISCORD_BOT_TOKEN")  # Discord Bot Token
+
 SOURCES = [
     "https://t.me/s/ForexFactoryCalendar",  # Telegram-Kanal
 ]
 RSS_FEEDS = [
     "https://cointelegraph.com/rss"  # RSS-Feed für Krypto-News
 ]
-CHANNEL_FOREX_ID = 1335674970013040794  # Dein Forex-News-Kanal
-CHANNEL_TRADE_ID = 1335676311838134355  # Dein Trading-Kanal
+
+CHANNEL_FOREX_ID = 1335674970013040794  # Forex-News-Kanal
+CHANNEL_TRADE_ID = 1335676311838134355  # Trading-Kanal
+CHANNEL_RSS_ID = 1336353220460806174  # Neuer Kanal für RSS-Feeds
 
 # Handelszeiten
 SESSIONS = [
@@ -27,8 +30,7 @@ intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
 
-# Zum Speichern gesendeter Nachrichten
-sent_news = set()
+sent_news = set()  # Verhindert doppelte Nachrichten
 
 # Telegram-Nachrichten abrufen
 async def fetch_telegram_news(url):
@@ -38,15 +40,6 @@ async def fetch_telegram_news(url):
             soup = BeautifulSoup(html, 'html.parser')
             messages = soup.find_all('div', class_='tgme_widget_message_text')
             return [msg.text.strip() for msg in messages[-5:]]  # Letzte 5 Nachrichten
-
-# Webseiten-News abrufen
-async def fetch_website_news(url):
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            html = await response.text()
-            soup = BeautifulSoup(html, 'html.parser')
-            articles = soup.find_all('h2')  # Beispiel: Überschriften
-            return [article.text.strip() for article in articles[:5]]  # Letzte 5 Artikel
 
 # RSS-Feed abrufen
 async def fetch_rss_news():
@@ -59,10 +52,12 @@ async def fetch_rss_news():
                 news_items.append(f"📰 **{entry.title}**\n{entry.link}")
     return news_items
 
-# News abrufen & posten
+# News abrufen & in die entsprechenden Kanäle posten
 async def post_news():
     await client.wait_until_ready()
-    forex_channel = client.get_channel(CHANNEL_FOREX_ID)
+    
+    forex_channel = client.get_channel(CHANNEL_FOREX_ID)  # Kanal für Forex-Nachrichten
+    rss_channel = client.get_channel(CHANNEL_RSS_ID)  # Kanal für RSS-News
 
     while not client.is_closed():
         all_news = []
@@ -79,10 +74,19 @@ async def post_news():
         rss_news = await fetch_rss_news()
         all_news.extend(rss_news)
 
-        # Senden, wenn es neue Nachrichten gibt
+        # Forex-News in Forex-Kanal senden
         for item in all_news:
             if item not in sent_news:
                 await forex_channel.send(item)
+                sent_news.add(item)
+                if len(sent_news) > 50:
+                    sent_news.pop()  # Älteste Nachricht entfernen
+
+        # RSS-News in RSS-Kanal senden
+        rss_news = await fetch_rss_news()
+        for item in rss_news:
+            if item not in sent_news:
+                await rss_channel.send(item)
                 sent_news.add(item)
                 if len(sent_news) > 50:
                     sent_news.pop()  # Älteste Nachricht entfernen
