@@ -29,17 +29,18 @@ sent_news = []
 
 # Forex News Abfrage
 async def fetch_telegram_news():
-    async with aiohttp.ClientSession() as session:
-        async with session.get(TELEGRAM_URL) as response:
-            html = await response.text()
-            soup = BeautifulSoup(html, 'html.parser')
-            messages = soup.find_all('div', class_='tgme_widget_message_text')  # Holt alle Nachrichten
+    news = []
+    for url in TELEGRAM_URL:  # Durchläuft jede URL in der Liste
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                html = await response.text()
+                soup = BeautifulSoup(html, 'html.parser')
+                messages = soup.find_all('div', class_='tgme_widget_message_text')  # Holt alle Nachrichten
+                
+                for message in messages[-5:]:  # Nur die letzten 5 Nachrichten holen
+                    news.append(message.text.strip())
             
-            news = []
-            for message in messages[-5:]:  # Nur die letzten 5 Nachrichten holen
-                news.append(message.text.strip())
-            
-            return news
+    return news
 
 # Forex News Posten
 async def post_news():
@@ -90,6 +91,7 @@ async def on_ready():
     client.loop.create_task(send_trade_reminders())  # Handels-Erinnerungen senden
 
 client.run(TOKEN)
+
 
 
 
