@@ -13,7 +13,8 @@ SOURCES = [
     "https://t.me/s/ForexFactoryCalendar",  # Telegram-Kanal
 ]
 RSS_FEEDS = [
-    "https://www.btc-echo.de/feed/"  # RSS-Feed für Krypto-News
+    "https://www.btc-echo.de/feed/",
+    "https://www.coincierge.de/feed/"     # RSS-Feed für Krypto-News
 ]
 
 CHANNEL_FOREX_ID = 1336353220460806174  # Forex-News-Kanal
