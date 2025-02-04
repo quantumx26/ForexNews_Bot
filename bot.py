@@ -20,6 +20,7 @@ SESSIONS = [
 TELEGRAM_URL = "https://t.me/s/ForexFactoryCalendar"  # Öffentliche Telegram-Webseite
 
 intents = discord.Intents.default()
+intents.message_content = True
 client = discord.Client(intents=intents)
 
 # Liste zur Speicherung der letzten gesendeten Nachrichten-IDs (vermeidet doppelte Posts)
