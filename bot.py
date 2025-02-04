@@ -7,7 +7,10 @@ from datetime import datetime, timedelta
 import pytz
 
 TOKEN = os.getenv("DISCORD_BOT_TOKEN")  # Discord Bot Token
-TELEGRAM_URL = "https://t.me/s/ForexFactoryCalendar"  # Öffentliche Telegram-Webseite
+TELEGRAM_URL = [
+    "https://t.me/s/ForexFactoryCalendar",  # Erster Kanal
+    "https://t.me/s/CRYPTO_insider_deutcher",      # Zweiter Kanal  
+]
 CHANNEL_FOREX_ID = 1335674970013040794  # Ersetze mit deinem Forex-Channel
 CHANNEL_TRADE_ID = 1335676311838134355 # Ersetze mit deinem Trading-Channel
 
