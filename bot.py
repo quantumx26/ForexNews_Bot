@@ -3,6 +3,8 @@ import aiohttp
 from bs4 import BeautifulSoup
 import asyncio
 
+TOKEN = os.getenv("DISCORD_BOT_TOKEN")  # Holt den Token aus den Render-Umgebungsvariablen
+
 intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
@@ -32,4 +34,4 @@ async def on_ready():
     print(f'Eingeloggt als {client.user}')
     client.loop.create_task(post_news())
 
-client.run('MTMzNTY5OTI1MzM1NTQ3OTEyMA.GGIbUZ.4zqMXPPmwQWaXf2_ZYTvnksDOu73P6PthcgGCw')  # Ersetze YOUR_BOT_TOKEN durch den Token deines Bots
+client.run(TOKEN)  # Token wird jetzt sicher aus den Umgebungsvariablen geladen!
