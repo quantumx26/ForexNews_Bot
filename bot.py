@@ -4,39 +4,44 @@ import aiohttp
 from bs4 import BeautifulSoup
 import asyncio
 
-TOKEN = os.getenv("DISCORD_BOT_TOKEN")  # Holt den Token aus den Render-Umgebungsvariablen
+TOKEN = os.getenv("DISCORD_BOT_TOKEN")  # Discord Bot Token
+TELEGRAM_URL = "https://t.me/s/fxassistcalendar"  # Öffentliche Telegram-Webseite
 
 intents = discord.Intents.default()
 intents.message_content = True
 client = discord.Client(intents=intents)
 
-async def fetch_forexfactory_news():
-    url = "https://www.forexfactory.com/"
+async def fetch_telegram_news():
     async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            text = await response.text()
-            soup = BeautifulSoup(text, 'html.parser')
-            # Hier kannst du die spezifischen Nachrichten-Elemente auswählen
-            news = soup.find_all('div', class_='flexbox-item-content')
-            return [n.text.strip() for n in news]
+        async with session.get(TELEGRAM_URL) as response:
+            html = await response.text()
+            soup = BeautifulSoup(html, 'html.parser')
+            messages = soup.find_all('div', class_='tgme_widget_message_text')  # Holt alle Nachrichten
+            
+            news = []
+            for message in messages[-5:]:  # Nur die letzten 5 Nachrichten holen
+                news.append(message.text.strip())
+            
+            return news
 
 async def post_news():
     await client.wait_until_ready()
-    channel = client.get_channel(1335674970013040794)  # Ersetze YOUR_CHANNEL_ID durch die ID deines Kanals
+    channel = client.get_channel(1335674970013040794)  # Ersetze mit deiner Discord-Channel-ID
+    
+    last_news = set()  # Um doppelte Nachrichten zu vermeiden
     
     while not client.is_closed():
-        news = await fetch_forexfactory_news()
+        news = await fetch_telegram_news()
         for item in news:
-            await channel.send(item)
-        await asyncio.sleep(3600)  # Warte 1 Stunde, bevor du die nächsten Nachrichten übermittelst
+            if item not in last_news:  # Nur neue Nachrichten posten
+                await channel.send(item)
+                last_news.add(item)
+        await asyncio.sleep(900)  # Alle 30 Minuten neue Nachrichten abrufen
 
 @client.event
 async def on_ready():
     print(f'Eingeloggt als {client.user}')
     client.loop.create_task(post_news())
 
-import asyncio
-news = asyncio.run(fetch_forexfactory_news())
-print(news)  # Zeigt an, welche Nachrichten der Bot abrufen kann
+client.run(TOKEN)
 
-client.run(TOKEN)  # Token wird jetzt sicher aus den Umgebungsvariablen geladen!
