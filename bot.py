@@ -35,4 +35,8 @@ async def on_ready():
     print(f'Eingeloggt als {client.user}')
     client.loop.create_task(post_news())
 
+import asyncio
+news = asyncio.run(fetch_forexfactory_news())
+print(news)  # Zeigt an, welche Nachrichten der Bot abrufen kann
+
 client.run(TOKEN)  # Token wird jetzt sicher aus den Umgebungsvariablen geladen!
