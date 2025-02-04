@@ -1,23 +1,21 @@
 import os
 import discord
+import aiohttp
+from bs4 import BeautifulSoup
 import asyncio
 from datetime import datetime, timedelta
 import pytz
-import aiohttp
-from bs4 import BeautifulSoup
 
 TOKEN = os.getenv("DISCORD_BOT_TOKEN")  # Discord Bot Token
-CHANNEL_FOREX_ID = 1335676311838134355  # Ersetze mit deinem Forex-Kanal
-CHANNEL_TRADE_ID = 123456789012345678  # Ersetze mit deinem Trading-Kanal
+TELEGRAM_URL = "https://t.me/s/ForexFactoryCalendar"  # Öffentliche Telegram-Webseite
+CHANNEL_FOREX_ID = 1335674970013040794  # Ersetze mit deinem Forex-Channel
+CHANNEL_TRADE_ID = 123456789012345678  # Ersetze mit deinem Trading-Channel
 
 # Sessions mit Handelszeiten
 SESSIONS = [
-    {"name": "Trading Session 1", "time": "14:40", "timezone": "Europe/Berlin"},
+    {"name": "Trading Session 1", "time": "15:08", "timezone": "Europe/Berlin"},
     {"name": "Trading Session 2", "time": "19:35", "timezone": "Europe/Berlin"},
 ]
-
-# URL für die Forex-Nachrichten von Telegram
-TELEGRAM_URL = "https://t.me/s/ForexFactoryCalendar"  # Öffentliche Telegram-Webseite
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -27,29 +25,33 @@ client = discord.Client(intents=intents)
 sent_news = []
 
 # Forex News Abfrage
-async def fetch_forexfactory_news():
+async def fetch_telegram_news():
     async with aiohttp.ClientSession() as session:
         async with session.get(TELEGRAM_URL) as response:
-            text = await response.text()
-            soup = BeautifulSoup(text, 'html.parser')
-            # Hier kannst du die spezifischen Nachrichten-Elemente auswählen
-            news = soup.find_all('div', class_='flexbox-item-content')
-            return [n.text.strip() for n in news]
+            html = await response.text()
+            soup = BeautifulSoup(html, 'html.parser')
+            messages = soup.find_all('div', class_='tgme_widget_message_text')  # Holt alle Nachrichten
+            
+            news = []
+            for message in messages[-5:]:  # Nur die letzten 5 Nachrichten holen
+                news.append(message.text.strip())
+            
+            return news
 
-async def send_forex_news():
+# Forex News Posten
+async def post_news():
     await client.wait_until_ready()
     forex_channel = client.get_channel(CHANNEL_FOREX_ID)
 
     while not client.is_closed():
-        news = await fetch_forexfactory_news()
+        news = await fetch_telegram_news()
         for item in news:
-            # Verhindert doppelte Nachrichten
-            if item not in sent_news:
+            if item not in sent_news:  # Nur neue Nachrichten posten
                 await forex_channel.send(item)
-                sent_news.append(item)  # Füge die Nachricht zur Liste der gesendeten Nachrichten hinzu
+                sent_news.append(item)
                 if len(sent_news) > 50:  # Begrenze die Anzahl gespeicherter Nachrichten
                     sent_news.pop(0)  # Entferne die älteste Nachricht, wenn die Liste zu lang wird
-        await asyncio.sleep(300)  # Warte 15 Minuten, bevor du die nächsten Nachrichten übermittelst
+        await asyncio.sleep(900)  # Alle 15 Minuten neue Nachrichten abrufen
 
 # Handels Session Erinnerungen
 async def send_trade_reminders():
@@ -81,7 +83,7 @@ async def send_trade_reminders():
 async def on_ready():
     print(f"✅ Bot {client.user} ist gestartet!")
     # Starte beide Aufgaben im Hintergrund
-    client.loop.create_task(send_forex_news())  # Forex-Nachrichten senden
+    client.loop.create_task(post_news())  # Forex-Nachrichten senden
     client.loop.create_task(send_trade_reminders())  # Handels-Erinnerungen senden
 
 client.run(TOKEN)
