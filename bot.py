@@ -84,7 +84,7 @@ async def post_news():
                 if len(sent_news) > 50:
                     sent_news.pop()  # Älteste Nachricht entfernen
 
-        await asyncio.sleep(120)  # Alle 15 Minuten neue News abrufen
+        await asyncio.sleep(60)  # Alle 15 Minuten neue News abrufen
 
 # Handels Session Erinnerungen
 async def send_trade_reminders():
@@ -110,26 +110,13 @@ async def send_trade_reminders():
 
         await asyncio.sleep(30)  # Alle 30 Sekunden prüfen
 
-# Jeden Tag Mitternacht die Telegram-Nachrichten zurücksetzen
-async def reset_telegram_news():
-    await client.wait_until_ready()
-
-    while not client.is_closed():
-        now = datetime.now(pytz.timezone("Europe/Berlin"))
-        # Wenn es Mitternacht ist
-        if now.hour == 0 and now.minute == 0:
-            sent_telegram_news.clear()  # Set zurücksetzen
-            print("✅ Telegram-Nachrichtenspeicher zurückgesetzt!")
-            await asyncio.sleep(60)  # Warten, um sicherzustellen, dass der Reset nur einmal passiert
-        await asyncio.sleep(30)  # Alle 30 Sekunden prüfen
-
 @client.event
 async def on_ready():
     print(f"✅ Bot {client.user} ist gestartet!")
     client.loop.create_task(post_news())  
     client.loop.create_task(send_trade_reminders())  
-    client.loop.create_task(reset_telegram_news())  # Reset-Task starten
 
 client.run(TOKEN)
+
 
 
