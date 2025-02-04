@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 import asyncio
 
 TOKEN = os.getenv("DISCORD_BOT_TOKEN")  # Discord Bot Token
-TELEGRAM_URL = "https://t.me/s/fxassistcalendar"  # Öffentliche Telegram-Webseite
+TELEGRAM_URL = "https://t.me/s/ForexCalendar"  # Öffentliche Telegram-Webseite
 
 intents = discord.Intents.default()
 intents.message_content = True
