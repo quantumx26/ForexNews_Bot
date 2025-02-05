@@ -65,12 +65,32 @@ async def fetch_rss_news():
 # Krypto-Heatmap generieren und als Bild in den Discord-Kanal senden
 async def post_crypto_update():
     await client.wait_until_ready()
+    
+# 1. Abruf der letzten 20 Krypto-Coins sofort beim Start
     channel = client.get_channel(CHANNEL_KRYPTO_HEATMAP_ID)
+    if channel:
+        try:
+            print("Abrufe der letzten 20 Krypto-Coins beim Neustart...")
+            data = cg.get_coins_markets(vs_currency='usd')
+            top_coins = sorted(data, key=lambda x: x['market_cap'], reverse=True)[:20]  # Top 20 Coins
+
+            message = "**📊 Krypto Markt-Update (Top 20)**\n\n"
+            for coin in top_coins:
+                name = coin['name']
+                price = f"${coin['current_price']:,.2f}"
+                change = coin['price_change_percentage_24h'] or 0
+                symbol = "🚀" if change > 0 else "📉"
+                
+                message += f"**{name}**: {price} | {symbol} {change:.2f}%\n"
+
+            await channel.send(message)
+        except Exception as e:
+            print(f"Fehler beim Abrufen der Krypto-Daten beim Neustart: {e}")
 
     while not client.is_closed():
         try:
             data = cg.get_coins_markets(vs_currency='usd')
-            top_coins = sorted(data, key=lambda x: x['market_cap'], reverse=True)[:10]  # Top 10 Coins
+            top_coins = sorted(data, key=lambda x: x['market_cap'], reverse=True)[:20]  # Top 10 Coins
 
             message = "**📊 Krypto Markt-Update (Top 10)**\n\n"
             for coin in top_coins:
@@ -86,7 +106,7 @@ async def post_crypto_update():
         except Exception as e:
             print(f"Fehler beim Abrufen der Krypto-Daten: {e}")
 
-        await asyncio.sleep(7200)  # Alle 1 Stunde aktualisieren
+        await asyncio.sleep(10800)  # Alle 1 Stunde aktualisieren
 
 # News abrufen & in die entsprechenden Kanäle posten
 async def post_news():
