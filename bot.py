@@ -134,10 +134,35 @@ async def post_news():
 
         await asyncio.sleep(60)  # Alle 1 Minute neue News abrufen
 
+# Handels Session Erinnerungen
+async def send_trade_reminders():
+    await client.wait_until_ready()
+    trade_channel = client.get_channel(CHANNEL_TRADE_ID)
+
+    while not client.is_closed():
+        now = datetime.now(pytz.utc)
+
+        for session in SESSIONS:
+            session_time = datetime.strptime(session["time"], "%H:%M").time()
+            session_tz = pytz.timezone(session["timezone"])
+            session_now = now.astimezone(session_tz).time()
+
+            reminder_time = (datetime.combine(datetime.today(), session_time) - timedelta(minutes=10)).time()
+            if session_now.hour == reminder_time.hour and session_now.minute == reminder_time.minute:
+                await trade_channel.send(f"⏰ **In 10 Minuten beginnt die {session['name']}!** 📊🚀")
+                await asyncio.sleep(60)
+
+            if session_now.hour == session_time.hour and session_now.minute == session_time.minute:
+                await trade_channel.send(f"⏰ **{session['name']} beginnt jetzt!** 📊💰")
+                await asyncio.sleep(60)
+
+        await asyncio.sleep(30)  # Alle 30 Sekunden prüfen
+
 @client.event
 async def on_ready():
     print(f"✅ Bot {client.user} ist gestartet!")
     client.loop.create_task(post_news())  # News abrufen
+    client.loop.create_task(send_trade_reminders())  
     client.loop.create_task(post_crypto_update())  # Krypto-Heatmap jede Stunde generieren
 
 client.run(TOKEN)
