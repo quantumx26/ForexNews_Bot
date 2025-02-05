@@ -63,42 +63,43 @@ async def fetch_rss_news():
     return news_items
 
 # Krypto-Heatmap generieren und als Bild in den Discord-Kanal senden
-async def generate_crypto_heatmap():
+def create_heatmap(data):
+    coins = sorted(data, key=lambda x: x['market_cap'], reverse=True)[:20]  # Top 20 Coins
+    names = [coin['symbol'].upper() for coin in coins]
+    changes = [coin['price_change_percentage_24h'] or 0 for coin in coins]
+    
+    heatmap_data = np.array(changes).reshape(4, 5)  # 4 Zeilen, 5 Spalten
+    
+    fig, ax = plt.subplots(figsize=(10, 6))
+    cax = ax.matshow(heatmap_data, cmap='RdYlGn', vmin=-10, vmax=10)
+    plt.colorbar(cax, label='% Preisänderung (24h)')
+    
+    for i in range(4):
+        for j in range(5):
+            ax.text(j, i, names[i * 5 + j], ha='center', va='center', color='black', fontsize=12)
+    
+    ax.set_xticks([])
+    ax.set_yticks([])
+    plt.title("Krypto Heatmap (Top 20)")
+    
+    buf = BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    return buf
+
+async def post_crypto_heatmap():
     await client.wait_until_ready()
     channel = client.get_channel(CHANNEL_KRYPTO_HEATMAP_ID)
     
     while not client.is_closed():
-        try:
-            data = cg.get_coins_markets(vs_currency='usd')
-            coins = sorted(data, key=lambda x: x['market_cap'], reverse=True)[:20]  # Top 20 Coins nach Marktkapitalisierung
-
-            names = [coin['name'] for coin in coins]
-            prices = [coin['current_price'] for coin in coins]
-            percentages = [coin['price_change_percentage_24h'] for coin in coins]
-
-            fig, ax = plt.subplots(figsize=(10, 6))
-            scatter = ax.scatter(names, prices, c=percentages, cmap='coolwarm', s=100)
-            ax.set_xlabel('Kryptowährungen')
-            ax.set_ylabel('Preis in USD')
-            ax.set_title('Krypto-Heatmap: Top 20 Coins')
-            plt.xticks(rotation=45, ha='right')
-
-            cbar = plt.colorbar(scatter)
-            cbar.set_label('24h Preisänderung (%)')
-
-            buf = BytesIO()
-            plt.savefig(buf, format='png')
-            buf.seek(0)
-            plt.close(fig)
-
-            if channel:
-                await channel.send(file=discord.File(buf, filename='crypto_heatmap.png'))
-            buf.close()
-
-        except Exception as e:
-            print(f"Fehler beim Generieren der Heatmap: {e}")
+        data = cg.get_coins_markets(vs_currency='usd')
+        buf = create_heatmap(data)
         
-        await asyncio.sleep(3600)  # Alle 1 Stunde aktualisieren
+        if channel:
+            await channel.send(file=discord.File(buf, filename='crypto_heatmap.png'))
+        buf.close()
+        
+        await asyncio.sleep(3600)  # 1 Stunde warten
 
 # News abrufen & in die entsprechenden Kanäle posten
 async def post_news():
