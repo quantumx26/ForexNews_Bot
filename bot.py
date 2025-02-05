@@ -63,43 +63,30 @@ async def fetch_rss_news():
     return news_items
 
 # Krypto-Heatmap generieren und als Bild in den Discord-Kanal senden
-def create_heatmap(data):
-    coins = sorted(data, key=lambda x: x['market_cap'], reverse=True)[:20]  # Top 20 Coins
-    names = [coin['symbol'].upper() for coin in coins]
-    changes = [coin['price_change_percentage_24h'] or 0 for coin in coins]
-    
-    heatmap_data = np.array(changes).reshape(4, 5)  # 4 Zeilen, 5 Spalten
-    
-    fig, ax = plt.subplots(figsize=(10, 6))
-    cax = ax.matshow(heatmap_data, cmap='RdYlGn', vmin=-10, vmax=10)
-    plt.colorbar(cax, label='% Preisänderung (24h)')
-    
-    for i in range(4):
-        for j in range(5):
-            ax.text(j, i, names[i * 5 + j], ha='center', va='center', color='black', fontsize=12)
-    
-    ax.set_xticks([])
-    ax.set_yticks([])
-    plt.title("Krypto Heatmap (Top 20)")
-    
-    buf = BytesIO()
-    plt.savefig(buf, format='png')
-    buf.seek(0)
-    return buf
-
-async def post_crypto_heatmap():
+async def post_crypto_update():
     await client.wait_until_ready()
     channel = client.get_channel(CHANNEL_KRYPTO_HEATMAP_ID)
-    
+
     while not client.is_closed():
-        data = cg.get_coins_markets(vs_currency='usd')
-        buf = create_heatmap(data)
-        
-        if channel:
-            await channel.send(file=discord.File(buf, filename='crypto_heatmap.png'))
-        buf.close()
-        
-        await asyncio.sleep(3600)  # 1 Stunde warten
+        try:
+            data = cg.get_coins_markets(vs_currency='usd')
+            top_coins = sorted(data, key=lambda x: x['market_cap'], reverse=True)[:10]  # Top 10 Coins
+
+            message = "**📊 Krypto Markt-Update (Top 10)**\n\n"
+            for coin in top_coins:
+                name = coin['name']
+                price = f"${coin['current_price']:,.2f}"
+                change = coin['price_change_percentage_24h'] or 0
+                symbol = "🚀" if change > 0 else "📉"
+                
+                message += f"**{name}**: {price} | {symbol} {change:.2f}%\n"
+
+            if channel:
+                await channel.send(message)
+        except Exception as e:
+            print(f"Fehler beim Abrufen der Krypto-Daten: {e}")
+
+        await asyncio.sleep(3600)  # Alle 1 Stunde aktualisieren
 
 # News abrufen & in die entsprechenden Kanäle posten
 async def post_news():
@@ -131,6 +118,6 @@ async def post_news():
 async def on_ready():
     print(f"✅ Bot {client.user} ist gestartet!")
     client.loop.create_task(post_news())  # News abrufen
-    client.loop.create_task(post_crypto_heatmap())  # Krypto-Heatmap jede Stunde generieren
+    client.loop.create_task(post_crypto_update())  # Krypto-Heatmap jede Stunde generieren
 
 client.run(TOKEN)
