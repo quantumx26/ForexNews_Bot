@@ -131,6 +131,6 @@ async def post_news():
 async def on_ready():
     print(f"✅ Bot {client.user} ist gestartet!")
     client.loop.create_task(post_news())  # News abrufen
-    client.loop.create_task(generate_crypto_heatmap())  # Krypto-Heatmap jede Stunde generieren
+    client.loop.create_task(post_crypto_heatmap())  # Krypto-Heatmap jede Stunde generieren
 
 client.run(TOKEN)
