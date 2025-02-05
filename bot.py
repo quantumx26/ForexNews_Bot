@@ -92,7 +92,7 @@ async def post_crypto_update():
             data = cg.get_coins_markets(vs_currency='usd')
             top_coins = sorted(data, key=lambda x: x['market_cap'], reverse=True)[:20]  # Top 10 Coins
 
-            message = "**📊 Krypto Markt-Update (Top 10)**\n\n"
+            message = "**📊 Krypto Markt-Update (Top 20)**\n\n"
             for coin in top_coins:
                 name = coin['name']
                 price = f"${coin['current_price']:,.2f}"
