@@ -56,7 +56,7 @@ async def fetch_rss_news():
     news_items = []
     for url in RSS_FEEDS:
         feed = feedparser.parse(url)
-        for entry in feed.entries[:5]:  # Nur die neuesten 5 Artikel holen
+        for entry in feed.entries[:1]:  # Nur die neuesten 5 Artikel holen
             if entry.link not in sent_news:
                 sent_news.add(entry.link)
                 news_items.append(f"📰 **{entry.title}**\n{entry.link}")
@@ -86,7 +86,7 @@ async def post_crypto_update():
         except Exception as e:
             print(f"Fehler beim Abrufen der Krypto-Daten: {e}")
 
-        await asyncio.sleep(10800)  # Alle 1 Stunde aktualisieren
+        await asyncio.sleep(7200)  # Alle 1 Stunde aktualisieren
 
 # News abrufen & in die entsprechenden Kanäle posten
 async def post_news():
