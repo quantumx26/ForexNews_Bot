@@ -109,7 +109,7 @@ async def post_news():
             if item not in sent_news:
                 await rss_channel.send(item)
                 sent_news.add(item)
-                if len(sent_news) > 50:
+                if len(sent_news) > 20:
                     sent_news.pop()
 
         await asyncio.sleep(60)  # Alle 1 Minute neue News abrufen
