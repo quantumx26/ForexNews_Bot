@@ -70,7 +70,7 @@ async def post_crypto_update():
     while not client.is_closed():
         try:
             data = cg.get_coins_markets(vs_currency='usd')
-            top_coins = sorted(data, key=lambda x: x['market_cap'], reverse=True)[:20]  # Top 10 Coins
+            top_coins = sorted(data, key=lambda x: x['market_cap'], reverse=True)[:10]  # Top 10 Coins
 
             message = "**📊 Krypto Markt-Update (Top 10)**\n\n"
             for coin in top_coins:
@@ -86,7 +86,7 @@ async def post_crypto_update():
         except Exception as e:
             print(f"Fehler beim Abrufen der Krypto-Daten: {e}")
 
-        await asyncio.sleep(3600)  # Alle 1 Stunde aktualisieren
+        await asyncio.sleep(10800)  # Alle 1 Stunde aktualisieren
 
 # News abrufen & in die entsprechenden Kanäle posten
 async def post_news():
