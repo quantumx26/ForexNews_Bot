@@ -16,7 +16,8 @@ TOKEN = os.getenv("DISCORD_BOT_TOKEN")  # Discord Bot Token
 SOURCES = [
     "https://t.me/s/ForexFactoryCalendar",  # Telegram-Kanal
 ]
-RSS_FEEDS = ["https://www.coincierge.de/feed/"     # RSS-Feed für Krypto-News
+RSS_FEEDS = [
+    "https://www.coincierge.de/feed/"     # RSS-Feed für Krypto-News
 ]
 
 CHANNEL_FOREX_ID = 1336353220460806174  # Forex-News-Kanal
@@ -37,15 +38,15 @@ def get_trading_sessions():
     
     if current_weekday >= 5:
         return []
-    
+
     filtered_sessions = []
     for session in SESSIONS:
         session_time = datetime.strptime(session["time"], "%H:%M").time()
-        session_datetime = datetime.combine(current_time.date(), session_time, berlin_tz)
-        
+        session_datetime = berlin_tz.localize(datetime.combine(current_time.date(), session_time))
+
         if current_time <= session_datetime:
             filtered_sessions.append(session)
-    
+
     return filtered_sessions
 
 
