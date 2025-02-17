@@ -16,9 +16,7 @@ TOKEN = os.getenv("DISCORD_BOT_TOKEN")  # Discord Bot Token
 SOURCES = [
     "https://t.me/s/ForexFactoryCalendar",  # Telegram-Kanal
 ]
-RSS_FEEDS = [
-    "https://www.btc-echo.de/feed/",
-    "https://www.coincierge.de/feed/"     # RSS-Feed für Krypto-News
+RSS_FEEDS = ["https://www.coincierge.de/feed/"     # RSS-Feed für Krypto-News
 ]
 
 CHANNEL_FOREX_ID = 1336353220460806174  # Forex-News-Kanal
@@ -28,9 +26,28 @@ CHANNEL_KRYPTO_HEATMAP_ID = 1336644704405553225  # Füge hier die Channel ID fü
 
 # Handelszeiten
 SESSIONS = [
-    {"name": "Trading Session 1", "time": "15:55", "timezone": "Europe/Berlin"},
-    {"name": "Trading Session 2", "time": "19:35", "timezone": "Europe/Berlin"},
+    {"name": "Trading Session 1", "time": "15:45", "timezone": "Europe/Berlin"},
+    {"name": "Trading Session 2", "time": "19:27", "timezone": "Europe/Berlin"},
 ]
+
+def get_trading_sessions():
+    berlin_tz = pytz.timezone("Europe/Berlin")
+    current_time = datetime.now(berlin_tz)
+    current_weekday = current_time.weekday()
+    
+    if current_weekday >= 5:
+        return []
+    
+    filtered_sessions = []
+    for session in SESSIONS:
+        session_time = datetime.strptime(session["time"], "%H:%M").time()
+        session_datetime = datetime.combine(current_time.date(), session_time, berlin_tz)
+        
+        if current_time <= session_datetime:
+            filtered_sessions.append(session)
+    
+    return filtered_sessions
+
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -106,7 +123,7 @@ async def post_crypto_update():
         except Exception as e:
             print(f"Fehler beim Abrufen der Krypto-Daten: {e}")
 
-        await asyncio.sleep(10800)  # Alle 1 Stunde aktualisieren
+        await asyncio.sleep(18000)  # Alle 5 Stunde aktualisieren
 
 # News abrufen & in die entsprechenden Kanäle posten
 async def post_news():
@@ -142,6 +159,7 @@ async def send_trade_reminders():
     while not client.is_closed():
         now = datetime.now(pytz.utc)
 
+        sessions = get_trading_sessions()
         for session in SESSIONS:
             session_time = datetime.strptime(session["time"], "%H:%M").time()
             session_tz = pytz.timezone(session["timezone"])
