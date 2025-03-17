@@ -39,6 +39,8 @@ def get_trading_sessions():
     if current_weekday >= 5:
         return []
 
+    print(f"Aktueller Wochentag: {current_weekday}")  # Debugging-Ausgabe
+
     filtered_sessions = []
     for session in SESSIONS:
         session_time = datetime.strptime(session["time"], "%H:%M").time()
