@@ -27,8 +27,7 @@ CHANNEL_KRYPTO_HEATMAP_ID = 1336644704405553225  # Füge hier die Channel ID fü
 
 # Handelszeiten
 SESSIONS = [
-    {"name": "Trading Session 1", "time": "14:45", "timezone": "Europe/Berlin"},
-    {"name": "Trading Session 2", "time": "18:27", "timezone": "Europe/Berlin"},
+    {"name": "Trading Session", "time": "15:45", "timezone": "Europe/Berlin"},
 ]
 
 def get_trading_sessions():
@@ -126,7 +125,7 @@ async def post_crypto_update():
         except Exception as e:
             print(f"Fehler beim Abrufen der Krypto-Daten: {e}")
 
-        await asyncio.sleep(18000)  # Alle 5 Stunde aktualisieren
+        await asyncio.sleep(26000)  # Alle 5 Stunde aktualisieren
 
 # News abrufen & in die entsprechenden Kanäle posten
 async def post_news():
