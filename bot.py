@@ -27,7 +27,7 @@ CHANNEL_KRYPTO_HEATMAP_ID = 1336644704405553225  # Füge hier die Channel ID fü
 
 # Handelszeiten
 SESSIONS = [
-    {"name": "Trading Session", "time": "15:45", "timezone": "Europe/Berlin"},
+    {"name": "Trading Session", "time": "09:00", "timezone": "Europe/Berlin"},
 ]
 
 def get_trading_sessions():
